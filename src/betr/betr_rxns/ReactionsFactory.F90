@@ -67,7 +67,6 @@ contains
     select case(trim(method))
     case ("mock_run")
        allocate(bgc_reaction, source=bgc_reaction_mock_run_type())
-       bgc_type='type0_bgc'
     case ("h2oiso")
        allocate(bgc_reaction, source=bgc_reaction_h2oiso_type())
     case ("doc_dic")
