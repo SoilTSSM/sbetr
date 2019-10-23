@@ -20,9 +20,12 @@ module BeTRSimulation
   use ColumnType     , only : column_type
   use LandunitType   , only : landunit_type
   use CNCarbonFluxType  , only : carbonflux_type
+  use PfCarbonFluxType  , only : pf_carbonflux_type
   use WaterStateType , only : waterstate_type
   use WaterfluxType     , only : waterflux_type
   use TemperatureType   , only : temperature_type
+  use PfTemperatureType   , only : pf_temperature_type
+  use PfWaterfluxType     , only : pf_waterflux_type
 #else
   use ColumnType     , only : column_type => column_physical_properties
   use VegetationType , only : patch_type  => vegetation_physical_properties
@@ -33,7 +36,7 @@ module BeTRSimulation
   use VegetationDataType, only : veg_es, veg_wf
   use ColumnDataType    , only : col_es, col_ws, col_wf
   use ColumnDataType, only : temperature_type=> column_energy_state
-  use VegetationDataType  , only : vegetation_carbon_flux
+  use VegetationDataType  , only : pf_carbonflux_type => vegetation_carbon_flux
   use VegetationDataType, only : pf_temperature_type => vegetation_energy_state
   use VegetationDataType, only : pf_waterflux_type => vegetation_water_flux
 #endif
@@ -937,7 +940,6 @@ contains
     if (ubj > 0)                                    continue
     if (num_soilc > 0)                              continue
     if (size(filter_soilc) > 0)                     continue
-!    if (associated(col_ws%h2osoi_liq)) continue
     if (associated(waterstate_vars%h2osoi_liq)) continue
   end subroutine BeTRSimulationConsistencyCheck
 
@@ -1022,7 +1024,7 @@ contains
   type(column_type)           , intent(in)           :: col ! column type
   integer                     , intent(in)           :: lbj, ubj
   type(carbonflux_type)       , optional, intent(in) :: carbonflux_vars
-  type(vegetation_carbon_flux), optional, intent(in) :: pf_carbonflux_vars
+  type(pf_carbonflux_type), optional, intent(in) :: pf_carbonflux_vars
   type(Waterstate_Type)       , optional, intent(in) :: Waterstate_vars
   type(waterflux_type)        , optional, intent(in) :: waterflux_vars
   type(pf_waterflux_type)        , optional, intent(in) :: pf_waterflux_vars
@@ -1082,8 +1084,8 @@ contains
     !assign waterstate
     if(present(waterstate_vars))then
       if(col%snl(c)<0)then
-        this%biophys_forc(c)%h2osno_liq_col(cc,col%snl(c)+1:0) = col_ws%h2osoi_liq(c,col%snl(c)+1:0)
-        this%biophys_forc(c)%h2osno_ice_col(cc,col%snl(c)+1:0) = col_ws%h2osoi_ice(c,col%snl(c)+1:0)
+        this%biophys_forc(c)%h2osno_liq_col(cc,col%snl(c)+1:0) = waterstate_vars%h2osoi_liq(c,col%snl(c)+1:0)
+        this%biophys_forc(c)%h2osno_ice_col(cc,col%snl(c)+1:0) = waterstate_vars%h2osoi_ice(c,col%snl(c)+1:0)
       endif
       this%biophys_forc(c)%finundated_col(cc)            = waterstate_vars%finundated(c)
       this%biophys_forc(c)%frac_h2osfc_col(cc)           = waterstate_vars%frac_h2osfc(c)
@@ -1097,13 +1099,12 @@ contains
       enddo
       this%biophys_forc(c)%air_vol_col(cc,lbj:ubj)       = waterstate_vars%air_vol(c,lbj:ubj)
       this%biophys_forc(c)%smp_l_col(cc,lbj:ubj)         = waterstate_vars%smp_l(c,lbj:ubj)
-!>>>>>>> master
+
 !      this%biophys_forc(c)%rho_vap(cc,lbj:ubj)           = waterstate_vars%rho_vap_col(c,lbj:ubj)
 !      this%biophys_forc(c)%rhvap_soi(cc,lbj:ubj)         = waterstate_vars%rhvap_soi_col(c,lbj:ubj)
 
     endif
     if(present(waterflux_vars))then
-!=======
       this%biogeo_flux(c)%qflx_infl_col(cc)             = waterflux_vars%qflx_infl(c)
       this%biogeo_flux(c)%qflx_totdrain_col(cc)         = waterflux_vars%qflx_totdrain(c)
       this%biogeo_flux(c)%qflx_gross_evap_soil_col(cc)  = waterflux_vars%qflx_gross_evap_soil(c)
@@ -1117,7 +1118,6 @@ contains
       this%biophys_forc(c)%qflx_snow2topsoi_col(cc)     = waterflux_vars%qflx_snow2topsoi(c)
       this%biophys_forc(c)%qflx_rootsoi_col(cc,lbj:ubj) = waterflux_vars%qflx_rootsoi(c,lbj:ubj)*1.e-3_r8
       this%biophys_forc(c)%qflx_runoff_col(cc)          = waterflux_vars%qflx_runoff_betr(c)  !mm/s
-!>>>>>>> master
     endif
     if(present(pf_waterflux_vars))then
       pp = 0
