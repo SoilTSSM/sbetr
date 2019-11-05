@@ -67,6 +67,9 @@ contains
     select case(trim(method))
     case ("mock_run")
        allocate(bgc_reaction, source=bgc_reaction_mock_run_type())
+    case ("mock_run1")
+       allocate(bgc_reaction, source=bgc_reaction_mock_run_type())
+       bgc_type='type0_bgc'
     case ("h2oiso")
        allocate(bgc_reaction, source=bgc_reaction_h2oiso_type())
     case ("doc_dic")
@@ -96,7 +99,7 @@ contains
   character(len=*)          , parameter   :: subname = 'create_standalone_plant_soilbgc_type'
 
   select case(trim(method))
-  case ("mock_run")
+  case ("mock_run","mock_run1")
      allocate(plant_soilbgc, source=plant_soilbgc_mock_run_type())
   case ("h2oiso")
      allocate(plant_soilbgc, source=plant_soilbgc_h2oiso_run_type())
@@ -121,7 +124,7 @@ contains
   !local variable
   logical :: yesno
   select case(trim(method))
-  case ("mock_run")
+  case ("mock_run","mock_run1")
      yesno = .true.
   case ("h2oiso")
      yesno = .true.
